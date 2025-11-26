@@ -1,11 +1,9 @@
 <template>
   <div class="max-w-3xl mx-auto p-6">
-    <!-- Formulaire -->
-    <h1 class="text-2xl font-bold mb-4 text-gray-800">
-      {{ selectedArticle ? 'Modifier un article' : 'Créer un article' }}
-    </h1>
-
-    <form @submit.prevent="selectedArticle ? updateArticle(selectedArticle.id) : submit"
+    <!-- Formulaire de création -->
+    <h1 v-if="!selectedArticle" class="text-2xl font-bold mb-4 text-gray-800">Créer un article</h1>
+    <h1 v-else class="text-2xl font-bold mb-4 text-gray-800">Modifier un article</h1>
+    <form v-if="!selectedArticle" @submit.prevent="submit"
           class="bg-white shadow-md rounded-lg p-6 space-y-4">
 
       <input v-model="title" placeholder="Titre"
@@ -16,22 +14,36 @@
 
       <input type="file" @change="onFileChange"
         class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4
-               file:rounded-md file:border-0
-               file:text-sm file:font-semibold
-               file:bg-black file:text-white
-               hover:file:bg-gray-800" />
+               file:rounded-md file:border-0 file:text-sm file:font-semibold
+               file:bg-black file:text-white hover:file:bg-gray-800" />
 
-      <!-- Boutons -->
+      <button type="submit"
+        class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition">
+        Créer
+      </button>
+    </form>
+
+    <!-- Formulaire de modification -->
+    <form v-else @submit.prevent="updateArticle(selectedArticle.id)"
+          class="bg-white shadow-md rounded-lg p-6 space-y-4">
+
+      <input v-model="title" placeholder="Titre"
+        class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none" />
+
+      <textarea v-model="content" placeholder="Contenu"
+        class="w-full border border-gray-300 rounded-md p-2 focus:ring-2 focus:ring-yellow-500 focus:outline-none"></textarea>
+
+      <input type="file" @change="onFileChange"
+        class="block w-full text-sm text-gray-600 file:mr-4 file:py-2 file:px-4
+               file:rounded-md file:border-0 file:text-sm file:font-semibold
+               file:bg-black file:text-white hover:file:bg-gray-800" />
+
       <div class="flex space-x-2">
         <button type="submit"
-          :class="selectedArticle 
-            ? 'bg-yellow-500 hover:bg-yellow-600' 
-            : 'bg-green-600 hover:bg-green-700'"
-          class="text-white px-4 py-2 rounded-md transition">
-          {{ selectedArticle ? 'Enregistrer' : 'Créer' }}
+          class="bg-yellow-500 text-white px-4 py-2 rounded-md hover:bg-yellow-600 transition">
+          Enregistrer
         </button>
-
-        <button v-if="selectedArticle" type="button" @click="cancelEdit"
+        <button type="button" @click="cancelEdit"
           class="bg-gray-400 text-white px-4 py-2 rounded-md hover:bg-gray-500 transition">
           Annuler
         </button>
@@ -67,12 +79,10 @@
 
 
 
-
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref } from 'vue'
 import axios from 'axios'
 
-// Variables réactives
 const title = ref('')
 const content = ref('')
 const image = ref(null)
@@ -84,7 +94,6 @@ axios.get('/api/articles').then(res => {
   articles.value = res.data
 })
 
-// Méthodes
 function onFileChange(e) {
   image.value = e.target.files[0]
 }
@@ -102,6 +111,7 @@ async function submit() {
   const res = await axios.get('/api/articles')
   articles.value = res.data
   resetForm()
+  selectedArticle.value = null // 🔑 assure qu'on revient en mode création
 }
 
 function editArticle(article) {
@@ -127,6 +137,11 @@ async function updateArticle(id) {
   selectedArticle.value = null
 }
 
+function cancelEdit() {
+  resetForm()
+  selectedArticle.value = null
+}
+
 function resetForm() {
   title.value = ''
   content.value = ''
@@ -137,6 +152,4 @@ async function deleteArticle(id) {
   await axios.delete(`/api/articles/${id}`)
   articles.value = articles.value.filter(a => a.id !== id)
 }
-
 </script>
-
