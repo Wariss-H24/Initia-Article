@@ -1,5 +1,6 @@
 <?php
 
+
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -13,5 +14,17 @@ Route::get('/', function () {
 Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
+
+Route::get('/about', function () {
+    return Inertia::render('About');
+});
+
+
+Route::get('/articles', function () {
+    return Inertia::render('Articles');
+});
+
+
+
 
 require __DIR__.'/settings.php';
